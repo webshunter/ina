@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Express Auto Deploy</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1><%= title %></h1>
+            <p><%= description %></p>
+            <a href="https://github.com/your-username/express-auto-deploy" class="btn btn-primary">View on GitHub</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>Auto Deployment</h3>
+                    <p>Automatic deployment on GitHub push events with webhook integration.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Secure</h3>
+                    <p>Webhook verification with SHA-256 signatures for enhanced security.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Process Management</h3>
+                    <p>Reliable process management with PM2 for zero-downtime deployments.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="status">
+        <div class="container">
+            <div class="status-container">
+                <h2>System Status</h2>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <h4>Main App</h4>
+                        <p>Running on port <%= process.env.PORT || 3000 %></p>
+                    </div>
+                    <div class="status-item">
+                        <h4>Webhook Server</h4>
+                        <p>Running on port <%= process.env.DEPLOY_PORT || 9001 %></p>
+                    </div>
+                    <div class="status-item">
+                        <h4>Last Deployment</h4>
+                        <p id="lastDeployment">Checking...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <%= new Date().getFullYear() %> Express Auto Deploy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Update last deployment time
+        fetch('/')
+            .then(response => response.json())
+            .catch(error => {
+                document.getElementById('lastDeployment').textContent = 'Not available';
+            });
+    </script>
+</body>
+</html> 
