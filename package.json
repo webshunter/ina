@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "deploy": "echo 'Starting deployment...' && git pull && echo 'Git pull done' && npm install && echo 'NPM install done' && pm2 restart all && echo 'Deployment complete'",
+    "deploy": "bash -c 'echo \"Starting deployment...\" && git pull || exit 1; echo \"Git pull done\" && npm install || exit 1; echo \"NPM install done\" && pm2 restart all || pm2 start ecosystem.config.js; echo \"Deployment complete\"'",
     "setup": "npm install && pm2 start ecosystem.config.js"
   },
   "dependencies": {
