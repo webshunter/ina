@@ -71,6 +71,10 @@ const runCommand = (command) => {
 
 // Root endpoint untuk GitHub webhook
 app.post('/', async (req, res) => {
+  // Set timeout untuk response
+  req.setTimeout(30000);
+  res.setTimeout(30000);
+
   console.log('Received webhook request');
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
   console.log('Body:', JSON.stringify(req.body, null, 2));
