@@ -1,0 +1,19 @@
+{
+  "name": "express-auto-deploy",
+  "version": "1.0.0",
+  "description": "Express.js application with auto-deployment",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "deploy": "git pull && npm install && pm2 restart all || pm2 start ecosystem.config.js",
+    "setup": "npm install && pm2 start ecosystem.config.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+} 
