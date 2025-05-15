@@ -6,6 +6,7 @@
     <title>HUBUNK - AI Bisnis Coach untuk UMKM</title>
     <link rel="stylesheet" href="/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/scrollreveal"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -134,6 +135,90 @@
     </footer>
 
     <script>
+        // Konfigurasi ScrollReveal
+        ScrollReveal().reveal('.hero-content', {
+            delay: 200,
+            distance: '50px',
+            origin: 'left',
+            duration: 1000
+        });
+
+        ScrollReveal().reveal('.hero-image', {
+            delay: 400,
+            distance: '50px',
+            origin: 'right',
+            duration: 1000
+        });
+
+        ScrollReveal().reveal('.konsultasi-card', {
+            delay: 200,
+            interval: 200,
+            distance: '30px',
+            origin: 'bottom',
+            duration: 800
+        });
+
+        ScrollReveal().reveal('.pricing-card', {
+            delay: 200,
+            interval: 200,
+            distance: '30px',
+            origin: 'bottom',
+            duration: 800
+        });
+
+        ScrollReveal().reveal('.faq-item', {
+            delay: 100,
+            interval: 100,
+            distance: '20px',
+            origin: 'bottom',
+            duration: 600
+        });
+
+        ScrollReveal().reveal('.section-title', {
+            delay: 100,
+            distance: '20px',
+            origin: 'top',
+            duration: 800
+        });
+
+        // Smooth scroll untuk link navigasi
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        let lastScroll = 0;
+        const navbar = document.querySelector('.navbar');
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll <= 0) {
+                navbar.style.boxShadow = 'none';
+                return;
+            }
+            
+            if (currentScroll > lastScroll) {
+                // Scrolling down
+                navbar.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up
+                navbar.style.transform = 'translateY(0)';
+                navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            }
+            
+            lastScroll = currentScroll;
+        });
+
         // Update last deployment time
         fetch('/')
             .then(response => response.json())
