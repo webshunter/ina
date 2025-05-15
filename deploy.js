@@ -90,6 +90,8 @@ app.post('/', async (req, res) => {
 
     // Periksa jika ini adalah push event
     const event = req.headers['x-github-event'];
+    console.log('Event type:', event);
+    
     if (event !== 'push') {
       console.log(`Ignoring non-push event: ${event}`);
       return res.json({ 
@@ -98,13 +100,16 @@ app.post('/', async (req, res) => {
       });
     }
 
+    console.log('Processing push event...');
     console.log('Received webhook, starting deployment...');
     
     try {
       // Jalankan script deployment
+      console.log('Running deployment command...');
       const output = await runCommand('npm run deploy');
       console.log('Deployment output:', output);
       console.log('Deployment completed successfully');
+      
       return res.json({ 
         status: 'success', 
         message: 'Deployment completed',
