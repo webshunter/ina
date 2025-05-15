@@ -1,10 +1,17 @@
 :root {
   --primary-color: #37725B;
-  --secondary-color: #2B5547;
-  --dark-color: #333333;
-  --light-color: #ffffff;
-  --text-color: #333333;
-  --border-radius: 8px;
+  --primary-dark: #2B5547;
+  --primary-light: #E8F3F0;
+  --text-dark: #2D3748;
+  --text-light: #4A5568;
+  --white: #FFFFFF;
+  --gray-50: #F7FAFC;
+  --gray-100: #EDF2F7;
+  --gray-200: #E2E8F0;
+  --border-radius: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -16,8 +23,8 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.6;
-  color: var(--text-color);
-  background-color: var(--light-color);
+  color: var(--text-dark);
+  background-color: var(--white);
 }
 
 .container {
@@ -30,6 +37,10 @@ body {
 .navbar {
   background-color: var(--primary-color);
   padding: 1rem 0;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
 }
 
 .navbar .container {
@@ -39,30 +50,44 @@ body {
 }
 
 .navbar-brand {
-  color: white;
+  color: var(--white);
   text-decoration: none;
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 .nav-links a {
-  color: white;
+  color: var(--white);
   text-decoration: none;
   font-weight: 500;
+  font-size: 1rem;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.nav-links a:hover {
+  opacity: 1;
 }
 
 /* Hero Section */
 .hero {
-  padding: 4rem 0;
+  padding: 8rem 0 4rem;
+  background-color: var(--primary-light);
+  min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
+}
+
+.hero .container {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
 }
 
 .hero-content {
@@ -70,149 +95,244 @@ body {
 }
 
 .hero h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 3.5rem;
+  font-weight: 700;
   line-height: 1.2;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  letter-spacing: -1px;
 }
 
 .hero p {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  color: #666;
+  font-size: 1.25rem;
+  color: var(--text-light);
+  margin-bottom: 2.5rem;
+  max-width: 540px;
 }
 
 .hero-image {
   flex: 1;
-  text-align: right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .hero-image img {
   max-width: 100%;
   height: auto;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Buttons */
 .btn {
-  display: inline-block;
-  padding: 0.8rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 1.75rem;
   border-radius: var(--border-radius);
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  gap: 0.5rem;
 }
 
 .btn-primary {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-outline {
   border: 2px solid var(--primary-color);
   color: var(--primary-color);
+  background-color: transparent;
 }
 
-.btn:hover {
-  opacity: 0.9;
+.btn-outline:hover {
+  background-color: var(--primary-light);
   transform: translateY(-2px);
 }
 
 /* Konsultasi Section */
 .konsultasi {
-  padding: 4rem 0;
-  background-color: #f8f9fa;
+  padding: 6rem 0;
+  background-color: var(--white);
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 3rem;
+  text-align: center;
+  letter-spacing: -0.5px;
 }
 
 .konsultasi-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  margin-top: 2rem;
 }
 
 .konsultasi-card {
-  background: white;
-  padding: 2rem;
+  background: var(--white);
+  padding: 2.5rem;
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+}
+
+.konsultasi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
 }
 
 .konsultasi-card h3 {
   display: flex;
   align-items: center;
   gap: 1rem;
+  font-size: 1.5rem;
+  color: var(--primary-color);
   margin-bottom: 1rem;
 }
 
 .konsultasi-card p {
+  color: var(--text-light);
   margin-bottom: 1.5rem;
-  color: #666;
+  font-size: 1.1rem;
+}
+
+.icon {
+  font-size: 1.5rem;
 }
 
 /* Pricing Section */
 .pricing {
-  padding: 4rem 0;
+  padding: 6rem 0;
+  background-color: var(--gray-50);
 }
 
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  margin-top: 2rem;
 }
 
 .pricing-card {
-  background: white;
-  padding: 2rem;
+  background: var(--white);
+  padding: 2.5rem;
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.pricing-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
 }
 
 .pricing-card h3 {
+  color: var(--primary-color);
+  font-size: 1.5rem;
   margin-bottom: 1rem;
 }
 
-.pricing-card .price {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+.pricing-card p {
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+.price {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 2rem;
 }
 
 /* FAQ Section */
 .faq {
-  padding: 4rem 0;
-  background-color: #f8f9fa;
+  padding: 6rem 0;
+  background-color: var(--white);
 }
 
 .faq-item {
-  background: white;
-  padding: 1rem;
+  background: var(--gray-50);
+  padding: 1.5rem 2rem;
   border-radius: var(--border-radius);
   margin-bottom: 1rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.faq-item:hover {
+  background: var(--gray-100);
 }
 
 .faq-item h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 1.1rem;
+  color: var(--text-dark);
 }
 
 /* About Section */
 .about {
-  padding: 4rem 0;
+  padding: 6rem 0;
+  background-color: var(--primary-light);
 }
 
-.section-title {
-  font-size: 2rem;
-  margin-bottom: 2rem;
+.about p {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+  font-size: 1.25rem;
+  color: var(--text-light);
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .hero h1 {
+    font-size: 3rem;
+  }
+  
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
+    padding: 6rem 0 3rem;
+  }
+  
+  .hero .container {
     flex-direction: column;
     text-align: center;
+    gap: 3rem;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero p {
+    margin: 0 auto 2rem;
+  }
+  
+  .nav-links {
+    display: none;
   }
   
   .konsultasi-grid,
@@ -220,7 +340,22 @@ body {
     grid-template-columns: 1fr;
   }
   
-  .nav-links {
-    display: none;
+  .section-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .konsultasi-card,
+  .pricing-card {
+    padding: 1.5rem;
   }
 } 
