@@ -24,8 +24,8 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <h1>AI Bisnis Coach untuk UMKM Anda</h1>
-                <p>Dapatkan solusi bisnis yang tepat dengan konsultasi AI di sini.</p>
+                <h1><%= content.hero?.title || 'AI Bisnis Coach untuk UMKM Anda' %></h1>
+                <p><%= content.hero?.description || 'Dapatkan solusi bisnis yang tepat dengan konsultasi AI di sini.' %></p>
                 <a href="#konsultasi" class="btn btn-primary">Coba Konsultasi Gratis</a>
             </div>
             <div class="hero-image">
@@ -62,24 +62,22 @@
         <div class="container">
             <h2 class="section-title">Pricing</h2>
             <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Konsultasi Dasar</h3>
-                    <p>Chat dengan AI</p>
-                    <div class="price">Rp49.000/bulan</div>
-                    <a href="#" class="btn btn-primary">Pilih</a>
-                </div>
-                <div class="pricing-card">
-                    <h3>Konsultasi Plus</h3>
-                    <p>Chat & laporan PDF</p>
-                    <div class="price">Rp49.000/bulan</div>
-                    <a href="#" class="btn btn-primary">Pilih</a>
-                </div>
-                <div class="pricing-card">
-                    <h3>Konsultasi Premium</h3>
-                    <p>Chat & diskusi langsung</p>
-                    <div class="price">Rp49.000/bulan</div>
-                    <a href="#" class="btn btn-primary">Pilih</a>
-                </div>
+                <% pricing.forEach(plan => { %>
+                    <div class="pricing-card">
+                        <h3><%= plan.plan_name %></h3>
+                        <p><%= plan.description %></p>
+                        <div class="price">Rp <%= plan.price.toLocaleString('id-ID') %>/bulan</div>
+                        <div class="features">
+                            <% JSON.parse(plan.features).forEach(feature => { %>
+                                <div class="feature">
+                                    <i class="fas fa-check"></i>
+                                    <%= feature %>
+                                </div>
+                            <% }); %>
+                        </div>
+                        <a href="#" class="btn btn-primary">Pilih</a>
+                    </div>
+                <% }); %>
             </div>
         </div>
     </section>
@@ -87,108 +85,35 @@
     <section id="about" class="about">
         <div class="container">
             <h2 class="section-title">Tentang Kami</h2>
-            <p>Kami adalah platform konsultasi bisnis untuk membantu UMKM meraih kesuksesan melalui teknologi AI.</p>
+            <p><%= content.about?.description || 'Kami adalah platform konsultasi bisnis untuk membantu UMKM meraih kesuksesan melalui teknologi AI.' %></p>
         </div>
     </section>
 
     <section id="faq" class="faq">
         <div class="container">
             <h2 class="section-title">FAQ</h2>
-            <div class="faq-item">
-                <h3>Apa itu AI Bisnis Coach? <span>›</span></h3>
-            </div>
-            <div class="faq-item">
-                <h3>Bagaimana cara kerjanya? <span>›</span></h3>
-            </div>
-            <div class="faq-item">
-                <h3>Apakah konsultasi berbayar lebih efektif? <span>›</span></h3>
-            </div>
+            <% faqs.forEach(faq => { %>
+                <div class="faq-item">
+                    <h3><%= faq.question %> <span>›</span></h3>
+                    <div class="faq-answer"><%= faq.answer %></div>
+                </div>
+            <% }); %>
         </div>
     </section>
 
     <script>
-        // Konfigurasi ScrollReveal
-        ScrollReveal().reveal('.hero-content', {
-            delay: 200,
-            distance: '50px',
-            origin: 'left',
-            duration: 1000
-        });
+        // Initialize ScrollReveal
+        ScrollReveal().reveal('.hero-content', { delay: 200 });
+        ScrollReveal().reveal('.hero-image', { delay: 400 });
+        ScrollReveal().reveal('.konsultasi-card', { interval: 200 });
+        ScrollReveal().reveal('.pricing-card', { interval: 200 });
+        ScrollReveal().reveal('.faq-item', { interval: 100 });
 
-        ScrollReveal().reveal('.hero-image', {
-            delay: 400,
-            distance: '50px',
-            origin: 'right',
-            duration: 1000
-        });
-
-        ScrollReveal().reveal('.konsultasi-card', {
-            delay: 200,
-            interval: 200,
-            distance: '30px',
-            origin: 'bottom',
-            duration: 800
-        });
-
-        ScrollReveal().reveal('.pricing-card', {
-            delay: 200,
-            interval: 200,
-            distance: '30px',
-            origin: 'bottom',
-            duration: 800
-        });
-
-        ScrollReveal().reveal('.faq-item', {
-            delay: 100,
-            interval: 100,
-            distance: '20px',
-            origin: 'bottom',
-            duration: 600
-        });
-
-        ScrollReveal().reveal('.section-title', {
-            delay: 100,
-            distance: '20px',
-            origin: 'top',
-            duration: 800
-        });
-
-        // Smooth scroll untuk link navigasi
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
+        // FAQ Toggle
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', () => {
+                item.classList.toggle('active');
             });
-        });
-
-        // Navbar scroll effect
-        let lastScroll = 0;
-        const navbar = document.querySelector('.navbar');
-        
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            
-            if (currentScroll <= 0) {
-                navbar.style.boxShadow = 'none';
-                return;
-            }
-            
-            if (currentScroll > lastScroll) {
-                // Scrolling down
-                navbar.style.transform = 'translateY(-100%)';
-            } else {
-                // Scrolling up
-                navbar.style.transform = 'translateY(0)';
-                navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-            }
-            
-            lastScroll = currentScroll;
         });
     </script>
 </body>

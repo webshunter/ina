@@ -3,6 +3,11 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { isAuthenticated, isNotAuthenticated } = require('../middleware/auth');
 
+// Redirect /admin to /admin/dashboard
+router.get('/', isAuthenticated, (req, res) => {
+    res.redirect('/admin/dashboard');
+});
+
 // Auth routes
 router.get('/login', isNotAuthenticated, adminController.loginPage);
 router.post('/login', isNotAuthenticated, adminController.login);
@@ -23,5 +28,7 @@ router.post('/faq/update', isAuthenticated, adminController.updateFaq);
 // Pricing Management
 router.get('/pricing', isAuthenticated, adminController.pricingPage);
 router.post('/pricing/update', isAuthenticated, adminController.updatePricing);
+router.post('/pricing/delete', isAuthenticated, adminController.deletePricing);
+router.post('/pricing/toggle-status', isAuthenticated, adminController.togglePricingStatus);
 
 module.exports = router; 

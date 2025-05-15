@@ -1,5 +1,8 @@
 const bcrypt = require('bcrypt');
-const db = require('../models/database');
+const { db, ...dbOperations } = require('../models/database');
+const PricingController = require('./PricingController');
+
+const pricingController = new PricingController(db);
 
 const adminController = {
     // Authentication
@@ -55,6 +58,19 @@ const adminController = {
     },
 
     // Content Management
+    contentPage: async (req, res) => {
+        try {
+            const content = await db.getAllContent();
+            res.render('admin/content', {
+                content,
+                user: req.session.user
+            });
+        } catch (error) {
+            console.error('Content page error:', error);
+            res.status(500).send('Terjadi kesalahan saat memuat halaman konten');
+        }
+    },
+
     updateContent: async (req, res) => {
         try {
             const { section, key, value } = req.body;
@@ -67,6 +83,19 @@ const adminController = {
     },
 
     // FAQ Management
+    faqPage: async (req, res) => {
+        try {
+            const faqs = await db.getAllFaqs();
+            res.render('admin/faq', {
+                faqs,
+                user: req.session.user
+            });
+        } catch (error) {
+            console.error('FAQ page error:', error);
+            res.status(500).send('Terjadi kesalahan saat memuat halaman FAQ');
+        }
+    },
+
     addFaq: async (req, res) => {
         try {
             const { question, answer, order_num } = req.body;
@@ -80,8 +109,8 @@ const adminController = {
 
     updateFaq: async (req, res) => {
         try {
-            const { id, question, answer, order_num } = req.body;
-            await db.updateFaq(id, question, answer, order_num);
+            const { id, question, answer, order_num, is_active } = req.body;
+            await db.updateFaq(id, question, answer, order_num, is_active);
             res.json({ success: true });
         } catch (error) {
             console.error('Update FAQ error:', error);
@@ -90,14 +119,55 @@ const adminController = {
     },
 
     // Pricing Management
+    pricingPage: async (req, res) => {
+        try {
+            const pricing = await pricingController.getAllPlans();
+            res.render('admin/pricing', {
+                pricing,
+                user: req.session.user
+            });
+        } catch (error) {
+            console.error('Pricing page error:', error);
+            res.status(500).send('Terjadi kesalahan saat memuat halaman pricing');
+        }
+    },
+
     updatePricing: async (req, res) => {
         try {
-            const { id, plan_name, description, price, features } = req.body;
-            await db.updatePricing(id, plan_name, description, price, features);
+            const { id, ...planData } = req.body;
+            
+            if (id) {
+                await pricingController.updatePlan(id, planData);
+            } else {
+                await pricingController.createPlan(planData);
+            }
+            
             res.json({ success: true });
         } catch (error) {
             console.error('Update pricing error:', error);
             res.status(500).json({ error: 'Gagal mengupdate pricing' });
+        }
+    },
+
+    deletePricing: async (req, res) => {
+        try {
+            const { id } = req.body;
+            await pricingController.deletePlan(id);
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Delete pricing error:', error);
+            res.status(500).json({ error: 'Gagal menghapus pricing' });
+        }
+    },
+
+    togglePricingStatus: async (req, res) => {
+        try {
+            const { id, status } = req.body;
+            await pricingController.togglePlanStatus(id, status);
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Toggle pricing status error:', error);
+            res.status(500).json({ error: 'Gagal mengubah status pricing' });
         }
     }
 };

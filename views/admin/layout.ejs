@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <%- typeof style !== 'undefined' ? style : '' %>
 </head>
 <body class="bg-gray-100">
     <% if (typeof user !== 'undefined') { %>
@@ -56,7 +57,7 @@
 
     <!-- Main Content -->
     <main class="<%= typeof user !== 'undefined' ? 'ml-64' : '' %> min-h-screen">
-        <%- body %>
+        <%- typeof body !== 'undefined' ? body : '' %>
     </main>
 
     <!-- Toast Notification -->
@@ -64,6 +65,7 @@
         <span id="toastMessage"></span>
     </div>
 
+    <!-- Base Scripts -->
     <script>
         // Toast notification function
         function showToast(message, type = 'success') {
@@ -82,5 +84,8 @@
             }, 3000);
         }
     </script>
+    
+    <!-- Page-specific scripts -->
+    <%- typeof script !== 'undefined' ? script : '' %>
 </body>
 </html> 

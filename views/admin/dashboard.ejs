@@ -1,4 +1,4 @@
-<%- include('layout', { user }) %>
+<%- contentFor('body') %>
 
 <div class="p-8">
     <div class="flex justify-between items-center mb-8">
@@ -83,3 +83,9 @@
         </div>
     </div>
 </div>
+
+<%- contentFor('style') %>
+<!-- Add any page-specific styles here -->
+
+<%- contentFor('script') %>
+<!-- Add any page-specific scripts here -->
