@@ -1,43 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>HUBUNK - AI Bisnis Coach untuk UMKM</title>
     <link rel="stylesheet" href="/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">Express Auto Deploy</a>
+            <a href="/" class="navbar-brand">HUBUNK</a>
+            <div class="nav-links">
+                <a href="#konsultasi">Konsultasi</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#about">Tentang Kami</a>
+                <a href="#faq">FAQ</a>
+            </div>
         </div>
     </nav>
 
     <section class="hero">
         <div class="container">
-            <h1><%= title %></h1>
-            <p><%= description %></p>
-            <a href="https://github.com/your-username/express-auto-deploy" class="btn btn-primary">View on GitHub</a>
+            <div class="hero-content">
+                <h1>AI Bisnis Coach untuk UMKM Anda</h1>
+                <p>Dapatkan solusi bisnis yang tepat dengan konsultasi AI di sini.</p>
+                <a href="#konsultasi" class="btn btn-primary">Coba Konsultasi Gratis</a>
+            </div>
+            <div class="hero-image">
+                <img src="/images/ai-coach.png" alt="AI Business Coach">
+            </div>
         </div>
     </section>
 
-    <section class="features">
+    <section id="konsultasi" class="konsultasi">
         <div class="container">
-            <h2>Features</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>Auto Deployment</h3>
-                    <p>Automatic deployment on GitHub push events with webhook integration.</p>
+            <h2 class="section-title">Konsultasi</h2>
+            <div class="konsultasi-grid">
+                <div class="konsultasi-card">
+                    <h3>
+                        <span class="icon">💬</span>
+                        Konsultasi Gratis
+                    </h3>
+                    <p>Coba konsultasi AI secara gratis untuk topik bisnis tertentu.</p>
+                    <a href="#" class="btn btn-outline">Mulai Chat</a>
                 </div>
-                <div class="feature-card">
-                    <h3>Secure</h3>
-                    <p>Webhook verification with SHA-256 signatures for enhanced security.</p>
+                <div class="konsultasi-card">
+                    <h3>
+                        <span class="icon">🎥</span>
+                        Konsultasi Berbayar
+                    </h3>
+                    <p>Dapatkan analisis mendalam dan sesi langsung bersama AI.</p>
+                    <a href="#" class="btn btn-primary">Lihat Detail</a>
                 </div>
-                <div class="feature-card">
-                    <h3>Process Management</h3>
-                    <p>Reliable process management with PM2 for zero-downtime deployments.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <h2 class="section-title">Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Konsultasi Dasar</h3>
+                    <p>Chat dengan AI</p>
+                    <div class="price">Rp49.000/bulan</div>
+                    <a href="#" class="btn btn-primary">Pilih</a>
                 </div>
+                <div class="pricing-card">
+                    <h3>Konsultasi Plus</h3>
+                    <p>Chat & laporan PDF</p>
+                    <div class="price">Rp49.000/bulan</div>
+                    <a href="#" class="btn btn-primary">Pilih</a>
+                </div>
+                <div class="pricing-card">
+                    <h3>Konsultasi Premium</h3>
+                    <p>Chat & diskusi langsung</p>
+                    <div class="price">Rp49.000/bulan</div>
+                    <a href="#" class="btn btn-primary">Pilih</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">Tentang Kami</h2>
+            <p>Kami adalah platform konsultasi bisnis untuk membantu UMKM meraih kesuksesan melalui teknologi AI.</p>
+        </div>
+    </section>
+
+    <section id="faq" class="faq">
+        <div class="container">
+            <h2 class="section-title">FAQ</h2>
+            <div class="faq-item">
+                <h3>Apa itu AI Bisnis Coach? <span>›</span></h3>
+            </div>
+            <div class="faq-item">
+                <h3>Bagaimana cara kerjanya? <span>›</span></h3>
+            </div>
+            <div class="faq-item">
+                <h3>Apakah konsultasi berbayar lebih efektif? <span>›</span></h3>
             </div>
         </div>
     </section>
