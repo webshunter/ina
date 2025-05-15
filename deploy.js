@@ -8,7 +8,12 @@ const port = process.env.DEPLOY_PORT || 9001;
 const webhookSecret = process.env.WEBHOOK_SECRET || 'your_default_secret';
 
 // Gunakan raw body agar bisa digunakan untuk verifikasi signature
-app.use(express.raw({ type: ['application/json', 'application/x-www-form-urlencoded'] }));
+app.use(express.raw({ type: '*/*' }));  // Tangkap semua content-type sebagai raw
+app.use((req, res, next) => {
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Raw Body:', req.body.toString());
+  next();
+});
 
 // Logging setiap request
 app.use((req, res, next) => {
