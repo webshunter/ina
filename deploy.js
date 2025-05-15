@@ -1,162 +1,89 @@
 require('dotenv').config();
 const express = require('express');
-const { exec } = require('child_process');
 const crypto = require('crypto');
+const { exec } = require('child_process');
 
 const app = express();
 const port = process.env.DEPLOY_PORT || 9001;
-const webhookSecret = process.env.WEBHOOK_SECRET || '966e4df9766f355222c47520796a779c364595ff5e652092424b925d01abdd50';
+const webhookSecret = process.env.WEBHOOK_SECRET || 'your_default_secret';
 
-// Middleware untuk logging
+// Gunakan raw body agar bisa digunakan untuk verifikasi signature
+app.use(express.raw({ type: 'application/json' }));
+
+// Logging setiap request
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
   next();
 });
 
-app.use(express.json());
+// Verifikasi HMAC SHA256 signature
+function verifySignature(req) {
+  const signature = req.headers['x-hub-signature-256'];
+  if (!signature) return false;
 
-// Error handler untuk JSON parsing
-app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    console.error('JSON parsing error:', err);
-    return res.status(400).json({ status: 'error', message: 'Invalid JSON' });
-  }
-  next();
-});
+  const hmac = crypto.createHmac('sha256', webhookSecret);
+  const digest = 'sha256=' + hmac.update(req.body).digest('hex');
 
-// Fungsi untuk memverifikasi signature dari GitHub
-const verifyGithubWebhook = (req) => {
-  try {
-    if (!webhookSecret) {
-      console.warn('Webhook secret tidak dikonfigurasi!');
-      return true;
-    }
+  console.log('Signature:', signature);
+  console.log('Digest:   ', digest);
 
-    const signature = req.headers['x-hub-signature-256'];
-    if (!signature) {
-      console.error('Tidak ada signature di header');
-      return false;
-    }
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+}
 
-    const payload = JSON.stringify(req.body);
-    const hmac = crypto.createHmac('sha256', webhookSecret);
-    const digest = 'sha256=' + hmac.update(payload).digest('hex');
-    
-    console.log('Received signature:', signature);
-    console.log('Calculated digest:', digest);
-    
-    const result = signature === digest;
-    console.log('Signature verification result:', result);
-    return result;
-  } catch (error) {
-    console.error('Error verifying webhook:', error);
-    return false;
-  }
-};
-
-// Fungsi untuk menjalankan perintah shell
-const runCommand = (command) => {
+// Fungsi untuk menjalankan command shell
+function runCommand(command) {
   return new Promise((resolve, reject) => {
     exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
-      if (stderr) console.error(`Stderr: ${stderr}`);
       if (error) {
-        console.error(`Error: ${error}`);
+        console.error(`Command error: ${error.message}`);
         return reject(error);
       }
-      console.log(`Output: ${stdout}`);
+      if (stderr) console.error(`stderr: ${stderr}`);
+      console.log(`stdout: ${stdout}`);
       resolve(stdout);
     });
   });
-};
+}
 
-// Root endpoint untuk GitHub webhook
+// Endpoint utama webhook
 app.post('/', async (req, res) => {
-  // Set timeout untuk response
-  req.setTimeout(30000);
-  res.setTimeout(30000);
-
-  console.log('Received webhook request');
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Body:', JSON.stringify(req.body, null, 2));
-
   try {
-    // Verifikasi webhook
-    const isValid = verifyGithubWebhook(req);
-    console.log('Webhook verification result:', isValid);
-    
-    if (!isValid) {
-      console.error('Verifikasi webhook gagal');
-      return res.status(401).json({ 
-        status: 'error', 
-        message: 'Unauthorized - Signature verification failed' 
-      });
+    // Verifikasi signature
+    if (!verifySignature(req)) {
+      console.error('Signature mismatch');
+      return res.status(401).json({ status: 'error', message: 'Invalid signature' });
     }
 
-    // Periksa jika ini adalah push event
+    // Parse JSON setelah verifikasi
+    const payload = JSON.parse(req.body.toString());
+
     const event = req.headers['x-github-event'];
-    console.log('Event type:', event);
-    
     if (event !== 'push') {
-      console.log(`Ignoring non-push event: ${event}`);
-      return res.json({ 
-        status: 'ignored', 
-        message: `Bukan push event (${event})` 
-      });
+      console.log(`Ignoring event: ${event}`);
+      return res.status(200).json({ status: 'ignored', message: `Ignoring event: ${event}` });
     }
 
-    console.log('Processing push event...');
-    console.log('Received webhook, starting deployment...');
-    
+    console.log('Received push event, running deploy...');
+
     try {
-      // Jalankan script deployment
-      console.log('Running deployment command...');
       const output = await runCommand('npm run deploy');
-      console.log('Deployment output:', output);
-      console.log('Deployment completed successfully');
-      
-      return res.json({ 
-        status: 'success', 
-        message: 'Deployment completed',
-        output 
-      });
-    } catch (deployError) {
-      console.error('Deployment error:', deployError);
-      return res.status(500).json({ 
-        status: 'error', 
-        message: `Deployment failed: ${deployError.message}`,
-        error: deployError 
-      });
+      return res.json({ status: 'success', message: 'Deployment completed', output });
+    } catch (err) {
+      return res.status(500).json({ status: 'error', message: 'Deployment failed', error: err.message });
     }
-  } catch (error) {
-    console.error('Webhook processing error:', error);
-    return res.status(500).json({ 
-      status: 'error', 
-      message: 'Internal server error: ' + error.message 
-    });
+
+  } catch (err) {
+    console.error('Webhook processing error:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 });
 
-// Health check endpoint
+// Health check
 app.get('/', (req, res) => {
-  return res.json({ 
-    status: 'ok', 
-    message: 'Webhook server is running',
-    secret_configured: !!webhookSecret
-  });
+  res.json({ status: 'ok', message: 'Webhook server is running' });
 });
 
-// Handle 404
-app.use((req, res) => {
-  res.status(404).json({ status: 'error', message: 'Not Found' });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-});
-
+// Start server
 app.listen(port, () => {
-  console.log(`Deployment server listening on port ${port}`);
-  console.log(`Webhook secret ${webhookSecret ? 'is' : 'is NOT'} configured`);
-}); 
+  console.log(`✅ Webhook server listening on port ${port}`);
+});
