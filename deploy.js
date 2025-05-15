@@ -45,7 +45,9 @@ const verifyGithubWebhook = (req) => {
     console.log('Received signature:', signature);
     console.log('Calculated digest:', digest);
     
-    return signature === digest;
+    const result = signature === digest;
+    console.log('Signature verification result:', result);
+    return result;
   } catch (error) {
     console.error('Error verifying webhook:', error);
     return false;
@@ -55,13 +57,13 @@ const verifyGithubWebhook = (req) => {
 // Fungsi untuk menjalankan perintah shell
 const runCommand = (command) => {
   return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, stderr) => {
+    exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+      if (stderr) console.error(`Stderr: ${stderr}`);
       if (error) {
         console.error(`Error: ${error}`);
         return reject(error);
       }
       console.log(`Output: ${stdout}`);
-      if (stderr) console.error(`Stderr: ${stderr}`);
       resolve(stdout);
     });
   });
@@ -75,7 +77,10 @@ app.post('/', async (req, res) => {
 
   try {
     // Verifikasi webhook
-    if (!verifyGithubWebhook(req)) {
+    const isValid = verifyGithubWebhook(req);
+    console.log('Webhook verification result:', isValid);
+    
+    if (!isValid) {
       console.error('Verifikasi webhook gagal');
       return res.status(401).json({ 
         status: 'error', 
@@ -95,16 +100,29 @@ app.post('/', async (req, res) => {
 
     console.log('Received webhook, starting deployment...');
     
-    // Jalankan script deployment
-    await runCommand('npm run deploy');
-    
-    console.log('Deployment completed successfully');
-    return res.json({ status: 'success', message: 'Deployment completed' });
+    try {
+      // Jalankan script deployment
+      const output = await runCommand('npm run deploy');
+      console.log('Deployment output:', output);
+      console.log('Deployment completed successfully');
+      return res.json({ 
+        status: 'success', 
+        message: 'Deployment completed',
+        output 
+      });
+    } catch (deployError) {
+      console.error('Deployment error:', deployError);
+      return res.status(500).json({ 
+        status: 'error', 
+        message: `Deployment failed: ${deployError.message}`,
+        error: deployError 
+      });
+    }
   } catch (error) {
-    console.error('Deployment failed:', error);
+    console.error('Webhook processing error:', error);
     return res.status(500).json({ 
       status: 'error', 
-      message: 'Deployment failed: ' + error.message 
+      message: 'Internal server error: ' + error.message 
     });
   }
 });
