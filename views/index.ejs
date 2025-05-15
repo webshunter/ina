@@ -106,34 +106,6 @@
         </div>
     </section>
 
-    <section class="status">
-        <div class="container">
-            <div class="status-container">
-                <h2>System Status</h2>
-                <div class="status-grid">
-                    <div class="status-item">
-                        <h4>Main App</h4>
-                        <p>Running on port <%= process.env.PORT || 3000 %></p>
-                    </div>
-                    <div class="status-item">
-                        <h4>Webhook Server</h4>
-                        <p>Running on port <%= process.env.DEPLOY_PORT || 9001 %></p>
-                    </div>
-                    <div class="status-item">
-                        <h4>Last Deployment</h4>
-                        <p id="lastDeployment">Checking...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <p>&copy; <%= new Date().getFullYear() %> Express Auto Deploy. All rights reserved.</p>
-        </div>
-    </footer>
-
     <script>
         // Konfigurasi ScrollReveal
         ScrollReveal().reveal('.hero-content', {
@@ -218,13 +190,6 @@
             
             lastScroll = currentScroll;
         });
-
-        // Update last deployment time
-        fetch('/')
-            .then(response => response.json())
-            .catch(error => {
-                document.getElementById('lastDeployment').textContent = 'Not available';
-            });
     </script>
 </body>
 </html> 

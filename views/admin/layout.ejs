@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HUBUNK Admin Panel</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <% if (typeof user !== 'undefined') { %>
+        <!-- Sidebar -->
+        <aside class="fixed left-0 top-0 w-64 h-full bg-[#37725B] text-white p-4">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold">HUBUNK</h1>
+                <p class="text-sm opacity-75">Admin Panel</p>
+            </div>
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/admin/dashboard" class="flex items-center p-2 rounded hover:bg-[#2c5a48] transition-colors">
+                            <i class="fas fa-home w-6"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/content" class="flex items-center p-2 rounded hover:bg-[#2c5a48] transition-colors">
+                            <i class="fas fa-edit w-6"></i>
+                            <span>Content</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/faq" class="flex items-center p-2 rounded hover:bg-[#2c5a48] transition-colors">
+                            <i class="fas fa-question-circle w-6"></i>
+                            <span>FAQ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/pricing" class="flex items-center p-2 rounded hover:bg-[#2c5a48] transition-colors">
+                            <i class="fas fa-tags w-6"></i>
+                            <span>Pricing</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="absolute bottom-4 left-4 right-4">
+                <a href="/admin/logout" class="flex items-center p-2 rounded hover:bg-[#2c5a48] transition-colors">
+                    <i class="fas fa-sign-out-alt w-6"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+    <% } %>
+
+    <!-- Main Content -->
+    <main class="<%= typeof user !== 'undefined' ? 'ml-64' : '' %> min-h-screen">
+        <%- body %>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 hidden bg-green-500 text-white px-6 py-3 rounded shadow-lg">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded shadow-lg ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`;
+            
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 
