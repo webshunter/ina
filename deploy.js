@@ -4,7 +4,7 @@ const { exec } = require('child_process');
 const crypto = require('crypto');
 
 const app = express();
-const port = process.env.DEPLOY_PORT || 9000;
+const port = process.env.DEPLOY_PORT || 9001;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 
 app.use(express.json());
@@ -40,7 +40,8 @@ const runCommand = (command) => {
   });
 };
 
-app.post('/webhook', async (req, res) => {
+// Root endpoint untuk GitHub webhook
+app.post('/', async (req, res) => {
   try {
     // Verifikasi webhook
     if (!verifyGithubWebhook(req)) {
@@ -65,6 +66,11 @@ app.post('/webhook', async (req, res) => {
     console.error('Deployment failed:', error);
     res.status(500).json({ status: 'error', message: 'Deployment failed' });
   }
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Webhook server is running' });
 });
 
 app.listen(port, () => {
