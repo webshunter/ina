@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
+const path = require('path');
 
 const app = express();
 const port = process.env.DEPLOY_PORT || 9001;
@@ -92,3 +93,11 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`✅ Webhook server listening on port ${port}`);
 });
+
+try {
+  // Jalankan deploy.sh di direktori project
+  execSync(path.join(__dirname, 'deploy.sh'), { stdio: 'inherit' });
+} catch (err) {
+  console.error('Deploy script failed:', err.message);
+  process.exit(1);
+}

@@ -20,6 +20,10 @@ cat > .env << EOL
 PORT=3000
 NODE_ENV=development
 
+# AdminJS Configuration
+ADMIN_EMAIL=admin@hubunk.com
+COOKIE_SECRET=$(openssl rand -hex 32)
+
 # Security
 SESSION_SECRET=$(openssl rand -hex 32)
 JWT_SECRET=$(openssl rand -hex 32)

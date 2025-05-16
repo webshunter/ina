@@ -12,7 +12,7 @@ function isNotAuthenticated(req, res, next) {
     next();
 }
 
-module.exports = {
+export {
     isAuthenticated,
     isNotAuthenticated
 }; 

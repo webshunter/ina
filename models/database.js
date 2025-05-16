@@ -1,120 +1,142 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const bcrypt = require('bcrypt');
+import pg from 'pg';
+import bcrypt from 'bcrypt';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-const dbPath = process.env.DB_PATH || path.resolve(__dirname, '../data/database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database:', err);
-        process.exit(1);
-    }
-    console.log('✅ Connected to database');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const pool = new pg.Pool({
+    host: '145.223.22.181',
+    port: 5433,
+    user: 'vds',
+    password: 'VdsHubunk123',
+    database: 'hubunk_db'
 });
 
 // Handle database errors
-db.on('error', (err) => {
+pool.on('error', (err) => {
     console.error('Database error:', err);
 });
 
 // Initialize database
-function initializeDatabase() {
-    db.serialize(() => {
+async function initializeDatabase() {
+    const client = await pool.connect();
+    try {
         // Users table
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT CHECK(role IN ('admin', 'user')) DEFAULT 'user',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            last_login DATETIME
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                role VARCHAR(50) CHECK(role IN ('admin', 'user')) DEFAULT 'user',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP
+            )
+        `);
 
         // Content table
-        db.run(`CREATE TABLE IF NOT EXISTS content (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            section TEXT NOT NULL,
-            key TEXT NOT NULL,
-            value TEXT,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(section, key)
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS content (
+                id SERIAL PRIMARY KEY,
+                section VARCHAR(255) NOT NULL,
+                key VARCHAR(255) NOT NULL,
+                value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(section, key)
+            )
+        `);
 
         // FAQ table
-        db.run(`CREATE TABLE IF NOT EXISTS faqs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            question TEXT NOT NULL,
-            answer TEXT,
-            order_num INTEGER,
-            is_active BOOLEAN DEFAULT 1,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS faqs (
+                id SERIAL PRIMARY KEY,
+                question TEXT NOT NULL,
+                answer TEXT,
+                order_num INTEGER,
+                is_active BOOLEAN DEFAULT true,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
         // Pricing table
-        db.run(`CREATE TABLE IF NOT EXISTS pricing (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            plan_name TEXT NOT NULL,
-            description TEXT,
-            price INTEGER,
-            features TEXT,
-            is_active BOOLEAN DEFAULT 1,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS pricing (
+                id SERIAL PRIMARY KEY,
+                plan_name VARCHAR(255) NOT NULL,
+                description TEXT,
+                price INTEGER,
+                features TEXT,
+                is_active BOOLEAN DEFAULT true,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
         // Consultations table
-        db.run(`CREATE TABLE IF NOT EXISTS consultations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            status TEXT CHECK(status IN ('pending', 'active', 'completed', 'cancelled')) DEFAULT 'pending',
-            type TEXT CHECK(type IN ('free', 'paid')) DEFAULT 'free',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            completed_at DATETIME,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS consultations (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                status VARCHAR(50) CHECK(status IN ('pending', 'active', 'completed', 'cancelled')) DEFAULT 'pending',
+                type VARCHAR(50) CHECK(type IN ('free', 'paid')) DEFAULT 'free',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        `);
 
         // Chat messages table
-        db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            consultation_id INTEGER NOT NULL,
-            sender TEXT CHECK(sender IN ('user', 'ai')) NOT NULL,
-            message TEXT NOT NULL,
-            video_url TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(consultation_id) REFERENCES consultations(id)
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id SERIAL PRIMARY KEY,
+                consultation_id INTEGER NOT NULL,
+                sender VARCHAR(50) CHECK(sender IN ('user', 'ai')) NOT NULL,
+                message TEXT NOT NULL,
+                video_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(consultation_id) REFERENCES consultations(id)
+            )
+        `);
 
         // Reports table
-        db.run(`CREATE TABLE IF NOT EXISTS reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            consultation_id INTEGER NOT NULL,
-            file_url TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(consultation_id) REFERENCES consultations(id)
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS reports (
+                id SERIAL PRIMARY KEY,
+                consultation_id INTEGER NOT NULL,
+                file_url TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(consultation_id) REFERENCES consultations(id)
+            )
+        `);
 
         // Subscriptions table
-        db.run(`CREATE TABLE IF NOT EXISTS subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            plan_id INTEGER NOT NULL,
-            status TEXT CHECK(status IN ('active', 'cancelled', 'expired')) DEFAULT 'active',
-            start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            end_date DATETIME NOT NULL,
-            FOREIGN KEY(user_id) REFERENCES users(id),
-            FOREIGN KEY(plan_id) REFERENCES pricing(id)
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                plan_id INTEGER NOT NULL,
+                status VARCHAR(50) CHECK(status IN ('active', 'cancelled', 'expired')) DEFAULT 'active',
+                start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                end_date TIMESTAMP NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(plan_id) REFERENCES pricing(id)
+            )
+        `);
 
         // Payments table
-        db.run(`CREATE TABLE IF NOT EXISTS payments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            status TEXT CHECK(status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
-            payment_method TEXT NOT NULL,
-            transaction_id TEXT UNIQUE,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )`);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS payments (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                status VARCHAR(50) CHECK(status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
+                payment_method VARCHAR(255) NOT NULL,
+                transaction_id VARCHAR(255) UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        `);
 
         // Create default admin if not exists
         const defaultAdmin = {
@@ -124,31 +146,16 @@ function initializeDatabase() {
             role: 'admin'
         };
 
-        db.get('SELECT id FROM users WHERE username = ?', [defaultAdmin.username], (err, row) => {
-            if (err) {
-                console.error('Error checking admin:', err);
-                return;
-            }
-
-            if (!row) {
-                bcrypt.hash(defaultAdmin.password, 10, (err, hash) => {
-                    if (err) {
-                        console.error('Error hashing password:', err);
-                        return;
-                    }
-
-                    db.run('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-                        [defaultAdmin.username, defaultAdmin.email, hash, defaultAdmin.role],
-                        (err) => {
-                            if (err) {
-                                console.error('Error creating admin:', err);
-                                return;
-                            }
-                            console.log('✅ Default admin created');
-                        });
-                });
-            }
-        });
+        const adminExists = await client.query('SELECT id FROM users WHERE username = $1', [defaultAdmin.username]);
+        
+        if (adminExists.rows.length === 0) {
+            const hashedPassword = await bcrypt.hash(defaultAdmin.password, 10);
+            await client.query(
+                'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+                [defaultAdmin.username, defaultAdmin.email, hashedPassword, defaultAdmin.role]
+            );
+            console.log('✅ Default admin created');
+        }
 
         // Insert default content
         const defaultContent = [
@@ -157,42 +164,12 @@ function initializeDatabase() {
             ['about', 'description', 'Kami adalah platform konsultasi bisnis untuk membantu UMKM meraih kesuksesan melalui teknologi AI.']
         ];
 
-        defaultContent.forEach(([section, key, value]) => {
-            db.run('INSERT OR IGNORE INTO content (section, key, value) VALUES (?, ?, ?)',
-                [section, key, value], (err) => {
-                    if (err) {
-                        console.error('Error inserting default content:', err);
-                    }
-                });
-        });
-
-        // Insert default FAQs
-        const defaultFaqs = [
-            {
-                question: 'Apa itu HUBUNK?',
-                answer: 'HUBUNK adalah platform AI Business Coach yang dirancang khusus untuk membantu UMKM di Indonesia berkembang melalui konsultasi bisnis berbasis AI.',
-                order_num: 1
-            },
-            {
-                question: 'Bagaimana cara memulai konsultasi?',
-                answer: 'Anda dapat memulai dengan konsultasi gratis untuk mencoba layanan kami. Setelah login, pilih opsi "Mulai Konsultasi" dan ajukan pertanyaan Anda.',
-                order_num: 2
-            },
-            {
-                question: 'Apa perbedaan konsultasi gratis dan berbayar?',
-                answer: 'Konsultasi gratis memiliki batasan topik dan durasi, sedangkan konsultasi berbayar memberikan akses ke analisis mendalam, laporan tertulis, dan video jawaban dari AI Coach.',
-                order_num: 3
-            }
-        ];
-
-        defaultFaqs.forEach((faq) => {
-            db.run('INSERT OR IGNORE INTO faqs (question, answer, order_num) VALUES (?, ?, ?)',
-                [faq.question, faq.answer, faq.order_num], (err) => {
-                    if (err) {
-                        console.error('Error inserting default FAQ:', err);
-                    }
-                });
-        });
+        for (const [section, key, value] of defaultContent) {
+            await client.query(
+                'INSERT INTO content (section, key, value) VALUES ($1, $2, $3) ON CONFLICT (section, key) DO NOTHING',
+                [section, key, value]
+            );
+        }
 
         // Insert default pricing plans
         const defaultPricing = [
@@ -232,237 +209,182 @@ function initializeDatabase() {
             }
         ];
 
-        defaultPricing.forEach((plan) => {
-            db.run('INSERT OR IGNORE INTO pricing (plan_name, description, price, features) VALUES (?, ?, ?, ?)',
-                [plan.plan_name, plan.description, plan.price, plan.features], (err) => {
-                    if (err) {
-                        console.error('Error inserting default pricing:', err);
-                    }
-                });
-        });
-    });
+        for (const plan of defaultPricing) {
+            await client.query(
+                'INSERT INTO pricing (plan_name, description, price, features) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+                [plan.plan_name, plan.description, plan.price, plan.features]
+            );
+        }
+
+    } catch (error) {
+        console.error('Error initializing database:', error);
+        throw error;
+    } finally {
+        client.release();
+    }
 }
 
 // Helper functions for CRUD operations
 const dbOperations = {
     // Users
-    getUserByUsername: (username) => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
-                if (err) reject(err);
-                resolve(row);
-            });
-        });
+    getUserByUsername: async (username) => {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        return result.rows[0];
     },
 
-    getUserByEmail: (email) => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
-                if (err) reject(err);
-                resolve(row);
-            });
-        });
+    getUserByEmail: async (email) => {
+        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        return result.rows[0];
     },
 
-    createUser: (username, email, password) => {
-        return new Promise((resolve, reject) => {
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) reject(err);
-                db.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-                    [username, email, hash], function(err) {
-                        if (err) reject(err);
-                        resolve(this.lastID);
-                    });
-            });
-        });
+    createUser: async (username, email, password) => {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const result = await pool.query(
+            'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id',
+            [username, email, hashedPassword]
+        );
+        return result.rows[0].id;
     },
 
     // Content Management
-    getAllContent: () => {
-        return new Promise((resolve, reject) => {
-            db.all('SELECT * FROM content', [], (err, rows) => {
-                if (err) reject(err);
-                resolve(rows || []);
-            });
-        });
+    getAllContent: async () => {
+        const result = await pool.query('SELECT * FROM content');
+        return result.rows;
     },
 
-    updateContent: (section, key, value) => {
-        return new Promise((resolve, reject) => {
-            db.run('UPDATE content SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE section = ? AND key = ?',
-                [value, section, key], (err) => {
-                    if (err) reject(err);
-                    resolve();
-                });
-        });
+    updateContent: async (section, key, value) => {
+        await pool.query(
+            'UPDATE content SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE section = $2 AND key = $3',
+            [value, section, key]
+        );
     },
 
     // FAQ Management
-    getAllFaqs: () => {
-        return new Promise((resolve, reject) => {
-            db.all('SELECT * FROM faqs WHERE is_active = 1 ORDER BY order_num', [], (err, rows) => {
-                if (err) reject(err);
-                resolve(rows || []);
-            });
-        });
+    getAllFaqs: async () => {
+        const result = await pool.query('SELECT * FROM faqs WHERE is_active = true ORDER BY order_num');
+        return result.rows;
     },
 
-    addFaq: (question, answer, order_num) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO faqs (question, answer, order_num) VALUES (?, ?, ?)',
-                [question, answer, order_num], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    addFaq: async (question, answer, order_num) => {
+        const result = await pool.query(
+            'INSERT INTO faqs (question, answer, order_num) VALUES ($1, $2, $3) RETURNING id',
+            [question, answer, order_num]
+        );
+        return result.rows[0].id;
     },
 
-    updateFaq: (id, question, answer, order_num, is_active) => {
-        return new Promise((resolve, reject) => {
-            const sql = `
-                UPDATE faqs 
-                SET question = ?, 
-                    answer = ?, 
-                    order_num = ?, 
-                    is_active = ?,
-                    updated_at = CURRENT_TIMESTAMP 
-                WHERE id = ?`;
-            
-            db.run(sql, [question, answer, order_num, is_active ? 1 : 0, id], (err) => {
-                if (err) reject(err);
-                resolve();
-            });
-        });
+    updateFaq: async (id, question, answer, order_num, is_active) => {
+        await pool.query(
+            `UPDATE faqs 
+            SET question = $1, 
+                answer = $2, 
+                order_num = $3, 
+                is_active = $4,
+                updated_at = CURRENT_TIMESTAMP 
+            WHERE id = $5`,
+            [question, answer, order_num, is_active, id]
+        );
     },
 
     // Pricing Management
-    getAllPricing: () => {
-        return new Promise((resolve, reject) => {
-            db.all('SELECT * FROM pricing WHERE is_active = 1', [], (err, rows) => {
-                if (err) reject(err);
-                resolve(rows || []);
-            });
-        });
+    getAllPricing: async () => {
+        const result = await pool.query('SELECT * FROM pricing WHERE is_active = true');
+        return result.rows;
     },
 
-    addPricing: (plan_name, description, price, features) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO pricing (plan_name, description, price, features) VALUES (?, ?, ?, ?)',
-                [plan_name, description, price, features], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    addPricing: async (plan_name, description, price, features) => {
+        const result = await pool.query(
+            'INSERT INTO pricing (plan_name, description, price, features) VALUES ($1, $2, $3, $4) RETURNING id',
+            [plan_name, description, price, features]
+        );
+        return result.rows[0].id;
     },
 
-    updatePricing: (id, plan_name, description, price, features, is_active) => {
-        return new Promise((resolve, reject) => {
-            const sql = `
-                UPDATE pricing 
-                SET plan_name = ?, 
-                    description = ?, 
-                    price = ?, 
-                    features = ?,
-                    is_active = ?,
-                    updated_at = CURRENT_TIMESTAMP 
-                WHERE id = ?`;
-            
-            db.run(sql, [plan_name, description, price, features, is_active ? 1 : 0, id], (err) => {
-                if (err) reject(err);
-                resolve();
-            });
-        });
+    updatePricing: async (id, plan_name, description, price, features, is_active) => {
+        await pool.query(
+            `UPDATE pricing 
+            SET plan_name = $1, 
+                description = $2, 
+                price = $3, 
+                features = $4,
+                is_active = $5,
+                updated_at = CURRENT_TIMESTAMP 
+            WHERE id = $6`,
+            [plan_name, description, price, features, is_active, id]
+        );
     },
 
     // Consultations
-    createConsultation: (userId, type) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO consultations (user_id, type) VALUES (?, ?)',
-                [userId, type], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    createConsultation: async (userId, type) => {
+        const result = await pool.query(
+            'INSERT INTO consultations (user_id, type) VALUES ($1, $2) RETURNING id',
+            [userId, type]
+        );
+        return result.rows[0].id;
     },
 
-    getConsultationById: (id) => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT * FROM consultations WHERE id = ?', [id], (err, row) => {
-                if (err) reject(err);
-                resolve(row);
-            });
-        });
+    getConsultationById: async (id) => {
+        const result = await pool.query('SELECT * FROM consultations WHERE id = $1', [id]);
+        return result.rows[0];
     },
 
     // Chat Messages
-    addChatMessage: (consultationId, sender, message, videoUrl = null) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO chat_messages (consultation_id, sender, message, video_url) VALUES (?, ?, ?, ?)',
-                [consultationId, sender, message, videoUrl], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    addChatMessage: async (consultationId, sender, message, videoUrl = null) => {
+        const result = await pool.query(
+            'INSERT INTO chat_messages (consultation_id, sender, message, video_url) VALUES ($1, $2, $3, $4) RETURNING id',
+            [consultationId, sender, message, videoUrl]
+        );
+        return result.rows[0].id;
     },
 
     // Reports
-    createReport: (consultationId, fileUrl) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO reports (consultation_id, file_url) VALUES (?, ?)',
-                [consultationId, fileUrl], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    createReport: async (consultationId, fileUrl) => {
+        const result = await pool.query(
+            'INSERT INTO reports (consultation_id, file_url) VALUES ($1, $2) RETURNING id',
+            [consultationId, fileUrl]
+        );
+        return result.rows[0].id;
     },
 
     // Subscriptions
-    createSubscription: (userId, planId, endDate) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO subscriptions (user_id, plan_id, end_date) VALUES (?, ?, ?)',
-                [userId, planId, endDate], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    createSubscription: async (userId, planId, endDate) => {
+        const result = await pool.query(
+            'INSERT INTO subscriptions (user_id, plan_id, end_date) VALUES ($1, $2, $3) RETURNING id',
+            [userId, planId, endDate]
+        );
+        return result.rows[0].id;
     },
 
     // Payments
-    createPayment: (userId, amount, paymentMethod) => {
-        return new Promise((resolve, reject) => {
-            db.run('INSERT INTO payments (user_id, amount, payment_method) VALUES (?, ?, ?)',
-                [userId, amount, paymentMethod], function(err) {
-                    if (err) reject(err);
-                    resolve(this.lastID);
-                });
-        });
+    createPayment: async (userId, amount, paymentMethod) => {
+        const result = await pool.query(
+            'INSERT INTO payments (user_id, amount, payment_method) VALUES ($1, $2, $3) RETURNING id',
+            [userId, amount, paymentMethod]
+        );
+        return result.rows[0].id;
     },
 
-    updatePaymentStatus: (transactionId, status) => {
-        return new Promise((resolve, reject) => {
-            db.run('UPDATE payments SET status = ? WHERE transaction_id = ?',
-                [status, transactionId], (err) => {
-                    if (err) reject(err);
-                    resolve();
-                });
-        });
+    updatePaymentStatus: async (transactionId, status) => {
+        await pool.query(
+            'UPDATE payments SET status = $1 WHERE transaction_id = $2',
+            [status, transactionId]
+        );
     }
 };
 
 // Cleanup on exit
-process.on('SIGINT', () => {
-    db.close((err) => {
-        if (err) {
-            console.error('Error closing database:', err);
-        } else {
-            console.log('Database connection closed');
-        }
-        process.exit(0);
-    });
+process.on('SIGINT', async () => {
+    try {
+        await pool.end();
+        console.log('Database connection closed');
+    } catch (err) {
+        console.error('Error closing database:', err);
+    }
+    process.exit(0);
 });
 
-module.exports = {
-    db,
-    initializeDatabase,
-    ...dbOperations
-}; 
+// Export the database instance and functions
+export {
+    dbOperations as default,
+    initializeDatabase
+};

@@ -1,21 +1,38 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
-const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
-const expressLayouts = require('express-ejs-layouts');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const db = require('./models/database');
-const adminRoutes = require('./routes/admin');
-const apiRoutes = require('./routes/api');
+import 'dotenv/config';
+import express from 'express';
+import path from 'path';
+import session from 'express-session';
+import pgSession from 'connect-pg-simple';
+import expressLayouts from 'express-ejs-layouts';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import start from './admin.js';
+import pg from 'pg';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const pgPool = new pg.Pool({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'hubunk'
+});
+
+const PgStore = pgSession(session);
+
+import db, { initializeDatabase } from './models/database.js';
+import apiRoutes from './routes/api.js';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Initialize database
-db.initializeDatabase();
+initializeDatabase();
 
 // Security middleware
 app.use(helmet({
@@ -48,8 +65,6 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // View engine setup
@@ -63,9 +78,9 @@ app.set('layout extractScripts', true);
 
 // Session setup
 app.use(session({
-    store: new SQLiteStore({
-        db: 'sessions.db',
-        dir: './data'
+    store: new PgStore({
+        pool: pgPool,
+        tableName: 'session'
     }),
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
@@ -76,11 +91,21 @@ app.use(session({
     }
 }));
 
-// Routes
-app.use('/admin', (req, res, next) => {
-    res.locals.layout = 'admin/layout';
-    next();
-}, adminRoutes);
+// Start AdminJS
+start().then(({ admin, router }) => {
+    app.use(admin.options.rootPath, router);
+
+    // Body parser harus setelah AdminJS router
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+        console.log(`AdminJS started on http://localhost:${port}${admin.options.rootPath}`);
+    });
+}).catch(error => {
+    console.error('Failed to start AdminJS:', error);
+});
 
 // Landing page route with dynamic content
 app.get('/', async (req, res) => {
@@ -115,9 +140,4 @@ app.get('/', async (req, res) => {
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
-});
-
-// Start server
-app.listen(port, () => {
-    console.log(`✅ Main application listening on port ${port}`);
 }); 

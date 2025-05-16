@@ -1,6 +1,131 @@
-# HUBUNK - AI Business Coach Platform
+# 🚀 Hubunk AI Coach
 
-HUBUNK adalah platform konsultasi bisnis berbasis AI yang dirancang untuk membantu UMKM Indonesia berkembang. Platform ini terdiri dari landing page informatif dan sistem admin panel untuk mengelola konten.
+AI Bisnis Coach untuk UMKM Indonesia. Platform konsultasi bisnis berbasis AI dengan Admin Panel profesional.
+
+---
+
+## 1. Requirements
+- Node.js v18+
+- PostgreSQL server (local/remote)
+- npm
+
+---
+
+## 2. Clone Repository
+```bash
+git clone https://github.com/username/hubunk-ai-coach.git
+cd hubunk-ai-coach
+```
+
+---
+
+## 3. Install Dependencies
+```bash
+npm install
+```
+
+---
+
+## 4. Environment Configuration
+
+Salin file template:
+```bash
+cp env.template .env
+```
+Edit file `.env` sesuai kebutuhan, contoh:
+```env
+# Database
+DB_TYPE=postgresql
+DB_HOST=145.223.22.181
+DB_PORT=5433
+DB_NAME=hubunk_db
+DB_USER=vds
+DB_PASSWORD=VdsHubunk123
+DB_URL=postgresql://vds:VdsHubunk123@145.223.22.181:5433/hubunk_db
+
+# Security
+SESSION_SECRET=isi_dengan_string_acak_aman
+JWT_SECRET=isi_dengan_string_acak_aman
+
+# Server
+PORT=3001
+NODE_ENV=production
+```
+**Tips:**  
+Untuk membuat SESSION_SECRET/JWT_SECRET yang aman:  
+Jalankan `openssl rand -hex 32` di terminal.
+
+---
+
+## 5. PostgreSQL Setup
+
+### A. Buat Database & User (jika belum ada):
+```sql
+CREATE DATABASE hubunk_db;
+CREATE USER vds WITH PASSWORD 'VdsHubunk123';
+GRANT ALL PRIVILEGES ON DATABASE hubunk_db TO vds;
+```
+
+### B. Buat tabel session (jika pakai connect-pg-simple):
+```sql
+CREATE TABLE "session" (
+  "sid" varchar NOT NULL COLLATE "default",
+  "sess" json NOT NULL,
+  "expire" timestamp(6) NOT NULL
+)
+WITH (OIDS=FALSE);
+
+ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid");
+CREATE INDEX "IDX_session_expire" ON "session" ("expire");
+```
+Atau, cukup tambahkan `createTableIfMissing: true` di konfigurasi session pada kode.
+
+---
+
+## 6. Run the App
+```bash
+npm start
+```
+Akses aplikasi di:  
+- **Landing Page:** http://localhost:3001  
+- **Admin Panel:** http://localhost:3001/admin
+
+---
+
+## 7. Default Admin Login
+- **Email:** admin@hubunk.com
+- **Password:** 88888888
+
+---
+
+## 8. Customisasi
+- Edit konten landing page, FAQ, dan pricing langsung dari AdminJS.
+- Untuk branding, ganti file `/public/logo.png` dan `/public/favicon.ico`.
+
+---
+
+## 9. Troubleshooting
+- **Port already in use:**  
+  Matikan proses di port 3001:  
+  `lsof -i :3001` lalu `kill -9 <PID>`
+- **Database error:**  
+  Pastikan PostgreSQL berjalan dan kredensial di `.env` benar.
+- **Session error:**  
+  Pastikan tabel `session` sudah ada di database.
+
+---
+
+## 10. Production
+- Gunakan `pm2` untuk menjalankan aplikasi secara background:
+  ```bash
+  npm install -g pm2
+  pm2 start index.js --name hubunk-ai-coach
+  ```
+
+---
+
+**Saran:**  
+Jangan commit file `.env` ke repository publik!
 
 ## 🚀 Fitur Utama
 
@@ -41,31 +166,6 @@ HUBUNK adalah platform konsultasi bisnis berbasis AI yang dirancang untuk memban
   }
 }
 ```
-
-## 🚀 Instalasi
-
-1. Clone repository:
-   ```bash
-   git clone [repository-url]
-   cd hubunk
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Buat file `.env`:
-   ```env
-   PORT=3000
-   SESSION_SECRET=your-secret-key
-   ```
-
-4. Jalankan aplikasi:
-   ```bash
-   npm run dev   # untuk development
-   npm start     # untuk production
-   ```
 
 ## 📁 Struktur Folder
 

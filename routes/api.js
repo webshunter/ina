@@ -1,10 +1,11 @@
-const express = require('express');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import { isAuthenticated } from '../middleware/auth.js';
+import db from '../models/database.js';
+import { OpenAI } from 'openai';
+import axios from 'axios';
+
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const { isAuthenticated } = require('../middleware/auth');
-const db = require('../models/database');
-const { OpenAI } = require('openai');
-const axios = require('axios');
 
 // Initialize OpenAI with error handling
 let openai = null;
@@ -165,4 +166,4 @@ router.post('/report/generate',
     }
 );
 
-module.exports = router; 
+export default router; 
