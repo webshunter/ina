@@ -38,10 +38,10 @@ initializeDatabase();
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
-            imgSrc: ["'self'", "data:", "https:", "http:"],
+            defaultSrc: ["'self'", "http://45.223.22.181", "https://45.223.22.181"],
+            styleSrc: ["'self'", "'unsafe-inline'", "http:", "https:"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "http:", "https:"],
+            imgSrc: ["'self'", "data:", "http:", "https:"],
             connectSrc: ["'self'", "https:", "http:"],
             fontSrc: ["'self'", "https:", "http:"],
             objectSrc: ["'none'"],
