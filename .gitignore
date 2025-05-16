@@ -42,4 +42,8 @@ coverage/
 
 # Ignore IDE/editor folders
 .vscode/
-.idea/ 
+.idea/
+
+# Git lock files
+package-lock.json
+yarn.lock
