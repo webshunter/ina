@@ -1,6 +1,45 @@
+# Node modules
 node_modules/
+
+# Environment files
 .env
+.env.*
+
+# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.DS_Store 
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PM2 logs
+pids
+logs
+*.log
+
+# Database & session files
+data/
+sessions/
+session*
+*.sqlite
+*.db
+
+# Build output
+dist/
+build/
+
+# Autocreated files
+*.pid
+*.seed
+
+# Ignore public uploads (if any)
+public/uploads/
+
+# Ignore coverage
+coverage/
+
+# Ignore IDE/editor folders
+.vscode/
+.idea/ 
